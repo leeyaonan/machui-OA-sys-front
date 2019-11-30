@@ -8,9 +8,24 @@ export function listFirmware(query) {
   })
 }
 
+export function listDetailFirmware(query) {
+  return request({
+    url: '/firmwares/list/detail',
+    method: 'get',
+    params: query
+  })
+}
 export function markStatus(data) {
   return request({
-    url: '/firmware/update',
+    url: '/firmwares/' + data.fwId + '/' + data.status,
+    method: 'post',
+    data
+  })
+}
+
+export function updateFirmware(data) {
+  return request({
+    url: '/firmwares/update',
     method: 'post',
     data
   })

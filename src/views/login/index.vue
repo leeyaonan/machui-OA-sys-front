@@ -2,7 +2,7 @@
   <div class="login-container">
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
       <div class="title-container">
-        <h3 class="title">管理员登录</h3>
+        <h3 class="title">IOT物模型录入系统</h3>
       </div>
       <el-form-item prop="username">
         <span class="svg-container svg-container_login">
@@ -23,20 +23,6 @@
 
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
 
-      <div style="position:relative">
-        <div class="tips">
-          <span> 超级管理员用户名: admin123</span>
-          <span> 超级管理员用户名：admin123</span>
-        </div>
-        <div class="tips">
-          <span> 商城管理员用户名: mall123</span>
-          <span> 商城管理员用户名：mall123</span>
-        </div>
-        <div class="tips">
-          <span> 推广管理员用户名: promotion123</span>
-          <span> 推广管理员用户名：promotion123</span>
-        </div>
-      </div>
     </el-form>
 
   </div>
@@ -120,7 +106,7 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
-$bg:#2d3a4b;
+$bg:#e3f9fd;
 $light_gray:#eee;
 
 /* reset element-ui css */
@@ -135,7 +121,7 @@ $light_gray:#eee;
       -webkit-appearance: none;
       border-radius: 0px;
       padding: 12px 5px 12px 15px;
-      color: $light_gray;
+      color: black;
       height: 47px;
       &:-webkit-autofill {
         box-shadow: 0 0 0px 1000px $bg inset !important;
@@ -154,7 +140,7 @@ $light_gray:#eee;
 </style>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
-$bg:#2d3a4b;
+$bg:#f0f0f4;
 $dark_gray:#889aa4;
 $light_gray:#eee;
 
@@ -170,6 +156,9 @@ $light_gray:#eee;
     width: 520px;
     padding: 35px 35px 15px 35px;
     margin: 120px auto;
+    .title-container .title{
+      color:#000;
+    }
   }
   .tips {
     font-size: 14px;

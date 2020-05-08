@@ -6,7 +6,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "cross-env BABEL_ENV=development webpack-dev-server --host 0.0.0.0 --inline --progress --config build/webpack.dev.conf.js",
+    "dev": "cross-env BABEL_ENV=development webpack-dev-server --host 127.0.0.1 --inline --progress --config build/webpack.dev.conf.js",
     "build:dep": "cross-env NODE_ENV=production env_config=dep node build/build.js",
     "build:prod": "cross-env NODE_ENV=production env_config=prod node build/build.js",
     "lint": "eslint --ext .js,.vue src",

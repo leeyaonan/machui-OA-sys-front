@@ -201,7 +201,7 @@ export default {
   computed: {
     headers() {
       return {
-        'X-cskaoyanmall-Admin-Token': getToken()
+        'Tims-Admin-Token': getToken()
       }
     }
   },

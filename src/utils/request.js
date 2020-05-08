@@ -14,8 +14,8 @@ service.interceptors.request.use(
   config => {
     // Do something before request is sent
     if (store.getters.token) {
-      // 让每个请求携带token-- ['X-cskaoyanmall-Admin-Token']为自定义key 请根据实际情况自行修改
-      config.headers['X-cskaoyanmall-Admin-Token'] = getToken()
+      // 让每个请求携带token-- ['Tims-Admin-Token']为自定义key 请根据实际情况自行修改
+      config.headers['Tims-Admin-Token'] = getToken()
     }
     return config
   },

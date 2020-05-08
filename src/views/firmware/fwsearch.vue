@@ -32,9 +32,9 @@
 
       <el-table-column align="center" label="固件版本id" prop="fwId" sortable min-width="40"/>
 
-      <el-table-column align="center" label="产品版本号" prop="fwVerNum" sortable/>
+      <el-table-column align="center" label="产品版本号" prop="pdVerNum" sortable/>
 
-      <el-table-column align="center" label="固件版本号" prop="pdVerNum" sortable/>
+      <el-table-column align="center" label="固件版本" prop="fwVer" sortable/>
 
       <el-table-column align="center" label="oemId" prop="oemId" sortable/>
 
@@ -69,6 +69,7 @@
           <el-button v-permission="['POST /admin/category/delete']" v-if="scope.row.status == 0" type="danger" size="small" @click="handleTest(scope.row)">标记提测</el-button>
           <el-button v-permission="['POST /admin/category/delete']" v-if="scope.row.status == 0" type="danger" size="small" @click="handleModel(scope.row)">修改物模型</el-button>
           <el-button v-permission="['POST /admin/category/delete']" v-if="scope.row.status == 1" type="danger" size="small" @click="handleMark(scope.row)">标记验证状态</el-button>
+          <el-button v-permission="['POST /admin/category/update']" v-if="scope.row.status != 3 || scope.row.status != 4 || scope.row.status != 5" type="danger" size="small" @click="handleAbort(scope.row)">标记废除状态</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -82,8 +83,8 @@
         <!--<el-form-item label="固件版本id" prop="fwId">-->
         <!--  <el-input v-model="dataForm.fwId" disabled/>-->
         <!--</el-form-item>-->
-        <el-form-item label="产品版本号" prop="fwVerNum">
-          <el-input v-model="dataForm.fwVerNum" disabled style="width: 200px;"/>
+        <el-form-item label="产品版本号" prop="fwVer">
+          <el-input v-model="dataForm.fwVer" disabled style="width: 200px;"/>
         </el-form-item>
         <el-form-item label="固件版本号" prop="pdVerNum">
           <el-input v-model="dataForm.pdVerNum" disabled style="width: 200px;"/>
@@ -150,6 +151,17 @@
       </div>
     </el-dialog>
 
+    <!-- 废除确认对话框 -->
+    <el-dialog :visible.sync="dialogAbortVisible" title="确认标记废除">
+      <div>
+        <span>该操作不可逆，确定标记固件版本已验证？</span>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogAbortVisible = false">取消</el-button>
+        <el-button type="danger" @click="updateStatus5">确定</el-button>
+      </div>
+    </el-dialog>
+
     <!--显示固件版本模态框-->
     <el-dialog :visible.sync="dialogTestVisible" title="标记提测">
       <span>标记固件版本进入提测状态，物模型定义不可再更改！请确认！</span>
@@ -171,7 +183,8 @@
             :on-success="uploadModelUrl"
             :limit="1"
             :action="uploadPath"
-            :auto-upload="false"
+            :auto-upload="true"
+            :data="dataForm"
             class="avatar-uploader"
             accept=".jpg,.jpeg,.png,.gif"> <!--是否和老师一样-->
             <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
@@ -277,10 +290,14 @@ export default {
         status: undefined,
         fwId: undefined
       },
+      listAbort: { // 测试人员：标记验证情况参数
+        status: undefined,
+        fwId: undefined
+      },
       catL1: {},
       dataForm: {
         fwId: '',
-        fwVerNum: '',
+        fwVer: '',
         pdVerNum: '',
         oemId: '',
         hwId: '',
@@ -294,6 +311,7 @@ export default {
       dialogFormVisible: false, // 显示详情
       dialogMarkVisible: false, // 显示标记
       dialogMarkVisible2: false, // 显示标记2
+      dialogAbortVisible: false, // 显示标记废除对话框
       dialogTestVisible: false, // 显示评测
       dialogModelVisible: false, // 显示物模型
       dialogStatus: '',
@@ -301,7 +319,7 @@ export default {
         update: '编辑',
         create: '创建'
       },
-      statusMap: ['待测试', '提测中', '验证失败', '已验证', '已发布'], // 传过来是0 1 2显示是文字
+      statusMap: ['待测试', '提测中', '已验证', '验证失败', '已发布', '已废除'], // 传过来是0 1 2显示是文字
       rules: {
         name: [{ required: true, message: '类目名不能为空', trigger: 'blur' }]
       },
@@ -313,20 +331,23 @@ export default {
         label: '提测中'
       }, {
         value: '2',
-        label: '验证失败'
+        label: '已验证'
       }, {
         value: '3',
-        label: '已验证'
+        label: '验证失败'
       }, {
         value: '4',
         label: '已发布'
+      }, {
+        value: '5',
+        label: '已废除'
       }]
     }
   },
   computed: {
     headers() {
       return {
-        'X-cskaoyanmall-Admin-Token': getToken()
+        'Tims-Admin-Token': getToken()
       }
     }
   },
@@ -363,7 +384,7 @@ export default {
     resetForm() {
       this.dataForm = {
         fwId: '',
-        fwVerNum: '',
+        fwVer: '',
         pdVerNum: '',
         oemId: '',
         hwId: '',
@@ -406,6 +427,7 @@ export default {
     },
     handleMark(row) {
       this.dataForm = Object.assign({}, row)
+      this.listUpdate.fwId = row.fwId
       this.dialogMarkVisible = true
     },
     handleTest(row) {
@@ -416,6 +438,12 @@ export default {
     handleModel(row) {
       this.dataForm = Object.assign({}, row)
       this.dialogModelVisible = true
+    },
+    handleAbort(row) {
+      this.dataForm = Object.assign({}, row)
+      this.listAbort.fwId = row.fwId
+      this.listAbort.status = 5
+      this.dialogAbortVisible = true
     },
     updateStatus() {
       this.dialogMarkVisible2 = true
@@ -462,8 +490,25 @@ export default {
           })
         })
     },
+    updateStatus5() {
+      markStatus(this.listAbort)
+        .then(() => {
+          this.getList()
+          this.dialogAbortVisible = false
+          this.$notify.success({
+            title: '成功',
+            message: '标记测试成功'
+          })
+        })
+        .catch(response => {
+          this.$notify.error({
+            title: '失败',
+            message: response.data.errmsg
+          })
+        })
+    },
     uploadModelUrl(response) {
-      this.dataForm.model = response.data.model
+      // this.dataForm.model = response.data.model
     },
     updateStatus4() {
       this.dialogModelVisible = false

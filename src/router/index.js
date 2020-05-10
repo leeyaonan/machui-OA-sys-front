@@ -98,17 +98,18 @@ export const asyncRouterMap = [
           title: '筛选/查看固件版本',
           noCache: true
         }
-      },
-      {
-        path: 'fwinput',
-        component: () => import('@/views/firmware/fwinput'),
-        name: 'fwinput',
-        meta: {
-          perms: ['GET /admin/feedback/list'],
-          title: '录入物模型',
-          noCache: true
-        }
       }
+      // },
+      // {
+      //   path: 'fwinput',
+      //   component: () => import('@/views/firmware/fwinput'),
+      //   name: 'fwinput',
+      //   meta: {
+      //     perms: ['GET /admin/feedback/list'],
+      //     title: '录入物模型',
+      //     noCache: true
+      //   }
+      // }
     ]
   },
   {

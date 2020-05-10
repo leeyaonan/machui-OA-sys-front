@@ -27,6 +27,11 @@
       </div>
     </div>
 
+    <!--创建操作-->
+    <div class="filter-container">
+      <el-button v-permission="['POST /admin/category/create']" class="filter-item" type="primary" icon="el-icon-edit" @click="handleCreate">创建物模型</el-button>
+    </div>
+
     <!-- 查询结果 -->
     <el-table v-loading="listLoading" :data="list" element-loading-text="正在查询中。。。" border fit highlight-current-row row-key="id">
 
@@ -77,6 +82,7 @@
     <!-- 分页 -->
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
 
+    <!--對話框-->
     <!-- 查看对话框 -->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="1000px">
       <el-form ref="dataForm" :rules="rules" :model="dataForm" status-icon label-position="left" label-width="100px" style="width: 100%; ">
@@ -103,16 +109,69 @@
         </el-form-item>
         <h3>最近日志：</h3>
         <el-table v-loading="listLoading" :data="detailList" element-loading-text="正在查询中。。。" border fit highlight-current-row row-key="id">
-          <el-table-column align="center" label="操作员" prop="opsUserId" sortable/>
+          <el-table-column align="center" label="操作员" prop="opsUserName" sortable/>
           <el-table-column align="center" label="操作类型" prop="opType" sortable/>
           <el-table-column align="center" label="操作内容" prop="opDesc" sortable/>
-          <el-table-column align="center" label="修改后/同步的物模型信息" prop="model" sortable/>
-          <el-table-column align="center" label="操作时间" prop="mtime" sortable/>
-          <el-table-column align="center" label="操作状态" prop="opStatus" sortable/>
-          <el-table-column align="center" label="ip" prop="ip" sortable/>
+          <el-table-column align="center" label="修改后/同步的物模型信息" prop="fwVer" sortable/>
+          <el-table-column align="center" label="pdVerNum" prop="pdVerNum" sortable/>
+          <el-table-column align="center" label="hwId" prop="hwId" sortable/>
+          <el-table-column align="center" label="oemId" prop="oemId" sortable/>
+          <el-table-column align="center" label="micType" prop="micType" sortable/>
+          <el-table-column align="center" label="thindModel" prop="thindModel" sortable/>
+          <el-table-column align="center" label="ctime" prop="ctime" sortable/>
+          <el-table-column align="center" label="opsUserIp" prop="opsUserIp" sortable/>
+          <el-table-column align="center" label="optionStatus" prop="optionStatus" sortable/>
         </el-table>
       </el-form>
+      <!-- 日志详情分页 -->
+      <pagination v-show="logTotal>0" :total="logTotal" :page.sync="listDetailQuery.page" :limit.sync="listDetailQuery.limit" @pagination="getDetailList" />
       <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogFormVisible = false">返回</el-button>
+      </div>
+    </el-dialog>
+    <!-- 創建对话框 -->
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormCreate" width="1000px">
+      <el-form ref="dataForm" :rules="rules" :model="dataForm" status-icon label-position="left" label-width="100px" style="width: 100%; ">
+        <!--<el-form-item label="固件版本id" prop="fwId">-->
+        <!--  <el-input v-model="dataForm.fwId" disabled/>-->
+        <!--</el-form-item>-->
+        <el-form-item label="产品版本号" prop="fwVer">
+          <el-input v-model="dataForm.fwVer" style="width: 450px;"/>
+        </el-form-item>
+        <el-form-item label="固件版本号" prop="pdVerNum">
+          <el-input v-model="dataForm.pdVerNum" style="width: 450px;"/>
+        </el-form-item>
+        <el-form-item label="oemId" prop="oemId">
+          <el-input v-model="dataForm.oemId" style="width: 450px;"/>
+        </el-form-item>
+        <el-form-item label="hwId" prop="hwId">
+          <el-input v-model="dataForm.hwId" style="width: 450px;"/>
+        </el-form-item>
+        <el-form-item label="mic类别" prop="micType">
+          <el-input v-model="dataForm.micType" style="width: 450px;"/>
+        </el-form-item>
+        <el-form-item label="物模型定义" prop="model">
+          <el-input v-model="dataForm.model" style="width: 450px;"/>
+        </el-form-item>
+        <el-form-item label="创建物模型" prop="model">
+          <el-upload
+            :show-file-list="true"
+            :on-success="uploadModelUrl"
+            :limit="1"
+            :action="uploadPath"
+            :auto-upload="true"
+            :data="dataForm"
+            class="avatar-uploader"
+            accept=".jpg,.jpeg,.png,.gif"> <!--是否和老师一样-->
+            <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+          </el-upload>
+        </el-form-item>
+
+      </el-form>
+      <!-- 日志详情分页 -->
+      <pagination v-show="logTotal>0" :total="logTotal" :page.sync="listDetailQuery.page" :limit.sync="listDetailQuery.limit" @pagination="getDetailList" />
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="createData">创建</el-button>
         <el-button type="primary" @click="dialogFormVisible = false">返回</el-button>
       </div>
     </el-dialog>
@@ -248,7 +307,7 @@
 </style>
 
 <script>
-import { listFirmware, listDetailFirmware, markStatus, updateFirmware } from '@/api/fwsearch'
+import { listFirmware, listDetailFirmware, markStatus, updateFirmware, createFirmware } from '@/api/fwsearch'
 import { uploadPath } from '@/api/storage'
 import { getToken } from '@/utils/auth'
 import Pagination from '@/components/Pagination'
@@ -262,6 +321,7 @@ export default {
       list: [], // 显示信息
       detailList: [], // 显示具体单条信息
       total: 0, // 总页数
+      logTotal: 0, // 总页数
       listLoading: false, // 测试把loading关了
       listQuery: {
         page: 1,
@@ -275,12 +335,12 @@ export default {
       listDetailQuery: {
         page: 1,
         limit: 20,
-        // oemId: undefined,
-        // hwId: undefined,
-        // micType: undefined,
+        oemId: undefined,
+        hwId: undefined,
+        micType: undefined
         // status: [],
-        fwId: undefined,
-        order: 'asc'
+        // fwId: undefined,
+        // order: 'asc'
       },
       listUpdate: { // 测试人员：标记验证情况参数
         status: undefined,
@@ -309,6 +369,7 @@ export default {
         mtime: ''
       },
       dialogFormVisible: false, // 显示详情
+      dialogFormCreate: false, // 創建物模型
       dialogMarkVisible: false, // 显示标记
       dialogMarkVisible2: false, // 显示标记2
       dialogAbortVisible: false, // 显示标记废除对话框
@@ -316,7 +377,7 @@ export default {
       dialogModelVisible: false, // 显示物模型
       dialogStatus: '',
       textMap: {
-        update: '编辑',
+        look: '查看',
         create: '创建'
       },
       statusMap: ['待测试', '提测中', '已验证', '验证失败', '已发布', '已废除'], // 传过来是0 1 2显示是文字
@@ -360,7 +421,9 @@ export default {
       this.listLoading = true
       listFirmware(this.listQuery)
         .then(response => {
-          this.list = response.data.data
+          this.list = response.data.data.data
+          this.total = response.data.data.total
+          this.listQuery.pages = response.data.data.pages
           this.listLoading = false
         })
         .catch(() => {
@@ -370,10 +433,15 @@ export default {
     },
     getDetailList(raw) {
       this.listLoading = true
-      this.listDetailQuery.fwId = raw.fwId
+      this.listDetailQuery.oemId = raw.oemId
+      this.listDetailQuery.hwId = raw.hwId
+      this.listDetailQuery.micType = raw.micType
+
       listDetailFirmware(this.listDetailQuery)
         .then(response => {
-          this.detailList = response.data.data
+          this.detailList = response.data.data.data
+          this.logTotal = response.data.data.total
+          this.listQuery.pages = response.data.data.pages
           this.listLoading = false
         })
         .catch(() => {
@@ -404,9 +472,30 @@ export default {
     handleCreate() {
       this.resetForm()
       this.dialogStatus = 'create'
-      this.dialogFormVisible = true
+      this.dialogFormCreate = true
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
+      })
+    },
+    createData() {
+      this.$refs['dataForm'].validate(valid => {
+        if (valid) {
+          createFirmware(this.dataForm)
+            .then(response => {
+              this.dialogFormCreate = false
+              this.getList()
+              this.$notify.success({
+                title: '成功',
+                message: '创建成功'
+              })
+            })
+            .catch(response => {
+              this.$notify.error({
+                title: '失败',
+                message: response.data.errmsg
+              })
+            })
+        }
       })
     },
     uploadIconUrl: function(response) {
@@ -417,6 +506,7 @@ export default {
     },
     handleLook(row) {
       this.getDetailList(row)
+      this.dialogStatus = 'look'
       this.dataForm = Object.assign({}, row)
       this.dataForm.status = this.statusMap[this.dataForm.status] // 转成文字显示
       this.dialogStatus = 'look'

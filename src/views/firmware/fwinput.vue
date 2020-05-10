@@ -43,6 +43,9 @@
       </el-table-column>
     </el-table>
 
+    <!-- 分页 -->
+    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
+
     <!-- 添加或修改对话框 -->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form ref="dataForm" :rules="rules" :model="dataForm" status-icon label-position="left" label-width="100px" style="width: 400px; margin-left:50px;">
@@ -134,14 +137,23 @@
 import { listCategory, listCatL1, createCategory, updateCategory, deleteCategory } from '@/api/category'
 import { uploadPath } from '@/api/storage'
 import { getToken } from '@/utils/auth'
+import Pagination from '@/components/Pagination'
 
 export default {
   name: 'Category',
+  components: { Pagination },
   data() {
     return {
       uploadPath,
       list: [],
       listLoading: true,
+      total: 0, // 总页数
+      listQuery: {
+        page: 1,
+        limit: 20,
+        status: [],
+        order: 'asc'
+      },
       catL1: {},
       dataForm: {
         id: undefined,
@@ -172,8 +184,10 @@ export default {
     }
   },
   created() {
-    this.getList()
-    this.getCatL1()
+    this.listLoading = false
+
+    // this.getList()
+    // this.getCatL1()
   },
   methods: {
     getList() {

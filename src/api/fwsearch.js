@@ -10,7 +10,7 @@ export function listFirmware(query) {
 
 export function listDetailFirmware(query) {
   return request({
-    url: '/firmwares/list/detail',
+    url: '/logs/firmwares',
     method: 'get',
     params: query
   })
@@ -19,6 +19,14 @@ export function markStatus(data) {
   return request({
     url: '/firmwares/' + data.fwId + '/' + data.status,
     method: 'post',
+    data
+  })
+}
+
+export function createFirmware(data) {
+  return request({
+    url: '/firmwares',
+    method: 'patch',
     data
   })
 }
